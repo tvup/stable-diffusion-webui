@@ -1,0 +1,70 @@
+# Ignorer Python-kompilerede filer
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignorer virtuelle miljøer
+venv/
+env/
+.venv/
+.virtualenv/
+
+# Ignorer distributionspakker
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Ignorer midlertidige filer og mapper
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Ignorer IDE-specifikke filer og mapper
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Ignorer konfigurationsfiler for version control
+.git/
+.hg/
+.svn/
+*.gitignore
+*.gitattributes
+
+# Ignorer datafiler
+data/
+*.csv
+!styles.csv
+*.json
+!config.json
+*.xml
+*.xls
+*.xlsx
+
+# Ignorer test-relaterede filer
+tests/__pycache__/
+tests/*.pyc
+.coverage
+coverage.xml
+*.cover
+*.coverage.*
+
+# Ignorer output-mapper
+outputs/*
+!outputs/.gitkeep  # Beholder output-mappen men ignorerer dens indhold
+
+# Ignorer log-mapper
+log/*
+!log/.gitkeep  # Beholder log-mappen men ignorerer dens indhold
+
+# Ignorer docker-relaterede filer
+docker-compose.override.yml
+Dockerfile.dev
+
+# Ignorer miljøvariabler
+.env

@@ -4,17 +4,17 @@
 #########################################################
 
 # Install directory without trailing slash
-install_dir="/app"
+install_dir="/home/$(whoami)/Apps"
 
 # Name of the subdirectory
 #clone_dir="stable-diffusion-webui"
 
 # Commandline arguments for webui.py, for example: export COMMANDLINE_ARGS="--medvram --opt-split-attention"
-export COMMANDLINE_ARGS="--listen --xformers --skip-version-check"
+export COMMANDLINE_ARGS="--listen --skip-torch-cuda-test --precision full --no-half --medvram --opt-split-attention --enable-insecure-extension-access"
 export PYTORCH_CUDA_ALLOC_CONF="garbage_collection_threshold:0.6"
 
 # python3 executable
-python_cmd="python3"
+#python_cmd="python3"
 
 # git executable
 #export GIT="git"
@@ -26,7 +26,7 @@ python_cmd="python3"
 #export LAUNCH_SCRIPT="launch.py"
 
 # install command for torch
-#export TORCH_COMMAND="pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118"
+export TORCH_COMMAND="pip install torch==2.1.0+cu118 torchvision==0.16.0+cu118 --extra-index-url https://download.pytorch.org/whl/cu118"
 
 # Requirements file to use for stable-diffusion-webui
 #export REQS_FILE="requirements_versions.txt"

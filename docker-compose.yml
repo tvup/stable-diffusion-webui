@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  proxy:
+    image: sameersbn/squid:latest  # Bruger en pre-konfigureret Squid image
+    container_name: squid-proxy
+    environment:
+      - TZ=Etc/UTC
+    networks:
+      - internal_network
+      - external_network  # Tilføj proxyen til standard bridge-netværket for internetadgang
+    ports:
+      - "3128:3128"  # Standard Squid port for HTTP proxy
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro  # Mount din egen konfigurationsfil
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    networks:
+      - internal_network
+      - external_network
+    ports:
+      - "7860:7860"  # Eksponér port 7860 på hosten
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Din NGINX konfigurationsfil
+    depends_on:
+      - stable-diffusion-webui
+    entrypoint: /bin/sh -c "sleep 10 && nginx -g 'daemon off;'"  # Tilføj en 10 sekunders forsinkelse
+
+
+  stable-diffusion-webui:
+    image: stable-diffusion-webui:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sd-webui
+    environment:
+      - HTTP_PROXY=http://proxy:3128
+      - HTTPS_PROXY=http://proxy:3128
+      - GIT_HTTP_PROXY=http://proxy:3128
+      - GIT_HTTPS_PROXY=http://proxy:3128
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+      - NO_PROXY=localhost,127.0.0.1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      - EGL_PLATFORM=surfaceless
+    networks:
+      - internal_network
+    depends_on:
+      - proxy
+    volumes:
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
+    runtime: nvidia
+    shm_size: '20gb'
+
+networks:
+  internal_network:
+    driver: bridge
+    internal: true
+  external_network:
+    driver: bridge  # Dette netværk har internetadgang, ikke isoleret
+
