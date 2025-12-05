@@ -1,5 +1,4 @@
 # Base image with Python and necessary tools
-#FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu20.04
 FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04
 
 # Set environment variables for Python
@@ -9,8 +8,8 @@ ENV PYTORCH_CUDA_ALLOC_CONF="garbage_collection_threshold:0.6"
 
 # Install necessary packages, including Python 3.10
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    && apt-get update && apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get update && \
+    apt-get install -y \
     build-essential \
     python3-dev \
     rustc cargo \
@@ -40,12 +39,13 @@ RUN apt-get update && \
 
 
 # Clone the Stable Diffusion WebUI code to a temporary location
+RUN git config --system --add safe.directory /app
 RUN git clone -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 
 # Create a non-root user and switch to that user
 RUN useradd -m -s /bin/bash webuiuser
 RUN mkdir -p /home/webuiuser/.local
-RUN chown -R webuiuser:webuiuser /app
+RUN chown -R webuiuser:webuiuser /app /home/webuiuser
 
 USER webuiuser
 
@@ -92,18 +92,10 @@ COPY --chown=webuiuser:webuiuser extensions/Config-Presets/config-txt2img.json /
 COPY --chown=webuiuser:webuiuser styles.csv /app/styles.csv
 COPY --chown=webuiuser:webuiuser config.json /app/config.json
 
-# Gendan ejerskab og rettigheder for at stramme sikkerheden
-USER root
-RUN chown -R root:root /usr/local /usr/lib/python3 \
-    && chmod -R go-w /usr/local /usr/lib/python3
-
-# Skift tilbage til ikke-root-bruger
-USER webuiuser
-
 # Expose the port that WebUI will run on
 EXPOSE 7860
 
 # Set the entrypoint to start the Python application
 
-ENTRYPOINT ["python3", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api"]
+ENTRYPOINT ["/home/webuiuser/venv/bin/python", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api"]
 
