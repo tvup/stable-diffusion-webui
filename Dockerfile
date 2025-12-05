@@ -7,8 +7,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTORCH_CUDA_ALLOC_CONF="garbage_collection_threshold:0.6"
 
 # Install necessary packages, including Python 3.10
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get update && \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get install -y \
     build-essential \
     python3-dev \
@@ -55,7 +54,9 @@ WORKDIR /app
 ENV PATH=$PATH:/home/webuiuser/.local/bin
 
 # Lav et venv til alt dit Python-halløj
-RUN python3 -m venv /home/webuiuser/venv
+RUN python3 -m venv /home/webuiuser/venv && \
+    chmod -R a+rx /home/webuiuser/venv/bin
+
 ENV PATH="/home/webuiuser/venv/bin:${PATH}"
 
 # Opgrader pip inde i venv
@@ -65,8 +66,6 @@ RUN pip install --upgrade pip
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4
 
 # Installer torch og torchvision separat
-#RUN pip install --no-deps torch==2.7.1+cu118 torchvision==0.20.1+cu118 xformers==0.0.28.post3+cu118 --index-url https://download.pytorch.org/whl/cu118
-
 RUN pip install --no-deps \
     torch==2.5.1+cu121 \
     torchvision==0.20.1+cu121 \
