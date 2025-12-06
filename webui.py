@@ -1,3 +1,5 @@
+import warnings
+warnings.filterwarnings("ignore", message=".*copying from a non-meta parameter.*")
 from __future__ import annotations
 
 import os
