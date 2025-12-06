@@ -44,6 +44,8 @@ RUN git clone -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 # Create a non-root user and switch to that user
 RUN useradd -m -s /bin/bash webuiuser
 RUN mkdir -p /home/webuiuser/.local
+RUN chown -R webuiuser:webuiuser /app /home/webuiuser /usr/local /usr/lib/python3
+RUN chmod -R a+w /usr/local /usr/lib/python3
 RUN chown -R webuiuser:webuiuser /app /home/webuiuser
 
 USER webuiuser
