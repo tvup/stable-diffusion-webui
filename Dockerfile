@@ -42,7 +42,8 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
 
 # Clone the Stable Diffusion WebUI code to a temporary location
 RUN git config --system --add safe.directory /app
-RUN git clone -b develop https://github.com/tvup/stable-diffusion-webui.git /app
+RUN git clone \
+    -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 
 # Create non-root user and give ownership (security best practice)
 RUN id -un ${UID} 2>/dev/null && usermod -l webuiuser -u ${UID} $(id -un ${UID}) || useradd -m -u ${UID} -g ${GID} -s /bin/bash webuiuser
