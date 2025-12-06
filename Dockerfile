@@ -99,4 +99,4 @@ COPY --chown=webuiuser:webuiuser config.json /app/config.json
 EXPOSE 7860
 
 # Set the entrypoint to start the Python application
-ENTRYPOINT ["python", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api"]
+ENTRYPOINT ["python", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api", "--enable-insecure-extension-access"]
