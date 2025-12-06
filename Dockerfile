@@ -1,12 +1,15 @@
 # Base image with Python and necessary tools
 FROM nvidia/cuda:12.6.0-cudnn-runtime-ubuntu24.04
 
+ARG UID
+ARG GID
+
 # Set environment variables for Python
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTORCH_CUDA_ALLOC_CONF="garbage_collection_threshold:0.6"
 
-# Install necessary packages, including Python 3.10
+# Install system packages
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
     apt-get install -y \
     build-essential \
@@ -41,44 +44,38 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
 RUN git config --system --add safe.directory /app
 RUN git clone -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 
-# Create a non-root user and switch to that user
-RUN useradd -m -s /bin/bash webuiuser
-RUN mkdir -p /home/webuiuser/.local
-RUN chown -R webuiuser:webuiuser /app /home/webuiuser /usr/local /usr/lib/python3
+# Create non-root user and give ownership (security best practice)
+RUN id -un ${UID} 2>/dev/null && usermod -l webuiuser -u ${UID} $(id -un ${UID}) || useradd -m -u ${UID} -g ${GID} -s /bin/bash webuiuser
+RUN chown -R ${UID}:${GID} /app
 RUN chmod -R a+w /usr/local /usr/lib/python3
-RUN chown -R webuiuser:webuiuser /app /home/webuiuser
+USER ${UID}
 
-USER webuiuser
+# Create a non-root user and switch to that user
+#RUN useradd -m -s /bin/bash webuiuser
+#RUN mkdir -p /home/webuiuser/.local
+#RUN chown -R webuiuser:webuiuser /app /home/webuiuser /usr/local /usr/lib/python3
+#RUN chown -R webuiuser:webuiuser /app /home/webuiuser
 
 WORKDIR /app
+RUN python3 -m venv /app/venv
 
-# Tilføj ~/.local/bin til PATH
-ENV PATH=$PATH:/home/webuiuser/.local/bin
-
-# Lav et venv til alt dit Python-halløj
-RUN python3 -m venv /home/webuiuser/venv && \
-    chmod -R a+rx /home/webuiuser/venv/bin
-
-ENV PATH="/home/webuiuser/venv/bin:${PATH}"
+ENV PATH="/app/venv/bin:${PATH}"
+ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4
 
 # Opgrader pip inde i venv
 RUN pip install --upgrade pip
 
-#ENV LD_PRELOAD=libtcmalloc.so
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4
-
-# Installer torch og torchvision separat
-RUN pip install --no-deps \
-    torch==2.5.1+cu121 \
-    torchvision==0.20.1+cu121 \
-    xformers==0.0.28.post3 \
-    --index-url https://download.pytorch.org/whl/cu121
+#RUN pip install --no-deps \
+#    torch==2.5.1+cu121 \
+#    torchvision==0.20.1+cu121 \
+#    xformers==0.0.28.post3 \
+#    --index-url https://download.pytorch.org/whl/cu121
 
 
 # Copy and install Python dependencies
 COPY --chown=webuiuser:webuiuser requirements.txt /app/requirements_versions.txt
 COPY --chown=webuiuser:webuiuser requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements_versions.txt
+#RUN pip install --no-cache-dir -r /app/requirements_versions.txt
 
 
 RUN cd /app/extensions \
@@ -93,10 +90,9 @@ COPY --chown=webuiuser:webuiuser extensions/Config-Presets/config-txt2img.json /
 COPY --chown=webuiuser:webuiuser styles.csv /app/styles.csv
 COPY --chown=webuiuser:webuiuser config.json /app/config.json
 
+
 # Expose the port that WebUI will run on
 EXPOSE 7860
 
 # Set the entrypoint to start the Python application
-
-ENTRYPOINT ["/home/webuiuser/venv/bin/python", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api"]
-
+ENTRYPOINT ["python", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api"]
