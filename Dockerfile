@@ -52,12 +52,6 @@ RUN chown -R ${UID}:${GID} /app
 RUN chmod -R a+w /usr/local /usr/lib/python3
 USER ${UID}
 
-# Create a non-root user and switch to that user
-#RUN useradd -m -s /bin/bash webuiuser
-#RUN mkdir -p /home/webuiuser/.local
-#RUN chown -R webuiuser:webuiuser /app /home/webuiuser /usr/local /usr/lib/python3
-#RUN chown -R webuiuser:webuiuser /app /home/webuiuser
-
 WORKDIR /app
 RUN python3 -m venv /app/venv
 
@@ -86,6 +80,10 @@ RUN cd /app/extensions \
     && git clone https://github.com/Zyin055/Config-Presets.git \
     && git clone https://github.com/djbielejeski/a-person-mask-generator \
     && cd ..
+
+# Comment out the specific warning line in PyTorch
+RUN sed -i '2400s/.*warnings.warn.*/        pass  # Suppressed warning/' \
+    /app/venv/lib/python3.12/site-packages/torch/nn/modules/module.py
 
 COPY --chown=webuiuser:webuiuser extensions/Config-Presets/config-img2img-custom-tracked-components.txt /app/extensions/Config-Presets/config-img2img-custom-tracked-components.txt
 COPY --chown=webuiuser:webuiuser extensions/Config-Presets/config-img2img.json /app/extensions/Config-Presets/config-img2img.json
