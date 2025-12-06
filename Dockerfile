@@ -8,6 +8,7 @@ ARG GID
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTORCH_CUDA_ALLOC_CONF="garbage_collection_threshold:0.6"
+ENV PYTHONWARNINGS="ignore:for.*copying from a non-meta parameter:UserWarning"
 
 # Install system packages
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
@@ -45,6 +46,10 @@ RUN git config --system --add safe.directory /app
 RUN git clone \
     -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 
+# Patch LoRA for PyTorch 2.5+ compatibility
+RUN sed -i '641s/.*/    # Fix attention mask for PyTorch 2.5+\n    if len(args) > 5 and args[5] is not None and args[5].dim() == 2:\n        args = list(args)\n        args[5] = None\n    return originals.MultiheadAttention_forward(self, *args, **kwargs)/' \
+    /app/extensions-builtin/Lora/networks.py
+
 # Create non-root user and give ownership (security best practice)
 RUN id -un ${UID} 2>/dev/null && usermod -l webuiuser -u ${UID} $(id -un ${UID}) || useradd -m -u ${UID} -g ${GID} -s /bin/bash webuiuser
 RUN chown -R ${UID}:${GID} /app
@@ -66,18 +71,20 @@ ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libtcmalloc.so.4
 # Opgrader pip inde i venv
 RUN pip install --upgrade pip
 
-#RUN pip install --no-deps \
-#    torch==2.5.1+cu121 \
-#    torchvision==0.20.1+cu121 \
-#    xformers==0.0.28.post3 \
-#    --index-url https://download.pytorch.org/whl/cu121
+RUN pip install --no-deps \
+    torch==2.5.1+cu121 \
+    torchvision==0.20.1+cu121 \
+    xformers==0.0.28.post3 \
+    --index-url https://download.pytorch.org/whl/cu121
 
 
 # Copy and install Python dependencies
 COPY --chown=webuiuser:webuiuser requirements.txt /app/requirements_versions.txt
 COPY --chown=webuiuser:webuiuser requirements.txt /app/requirements.txt
-#RUN pip install --no-cache-dir -r /app/requirements_versions.txt
+RUN pip install --no-cache-dir -r /app/requirements_versions.txt
 
+# Opdater open-clip til nyeste version for PyTorch 2.5+ support
+RUN pip install --upgrade open-clip-torch
 
 RUN cd /app/extensions \
     && git clone https://github.com/Zyin055/Config-Presets.git \

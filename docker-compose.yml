@@ -36,7 +36,11 @@ services:
         - UID=${UID}
         - GID=${GID}
     container_name: sd-webui
+    env_file:
+      - .env
     environment:
+      - TRANSFORMERS_CACHE=/app/models/CLIP
+      - HF_HOME=/app/models/CLIP
       - PIP_BREAK_SYSTEM_PACKAGES=1
       - PYTHONDONTWRITEBYTECODE=1
       - PYTHONUNBUFFERED=1
