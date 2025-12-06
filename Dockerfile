@@ -8,7 +8,6 @@ ARG GID
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTORCH_CUDA_ALLOC_CONF="garbage_collection_threshold:0.6"
-ENV PYTHONWARNINGS="ignore:for.*copying from a non-meta parameter:UserWarning"
 
 # Install system packages
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
@@ -46,9 +45,13 @@ RUN git config --system --add safe.directory /app
 RUN git clone \
     -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 
-# Patch LoRA for PyTorch 2.5+ compatibility
-RUN sed -i '641s/.*/    # Fix attention mask for PyTorch 2.5+\n    if len(args) > 5 and args[5] is not None and args[5].dim() == 2:\n        args = list(args)\n        args[5] = None\n    return originals.MultiheadAttention_forward(self, *args, **kwargs)/' \
-    /app/extensions-builtin/Lora/networks.py
+# Create warning filter
+RUN echo 'import warnings' > /app/filter_warnings.py && \
+    echo 'warnings.filterwarnings("ignore", message=".*copying from a non-meta parameter.*", category=UserWarning)' >> /app/filter_warnings.py
+
+# Modify launch.py to import it
+RUN sed -i '1i import filter_warnings' /app/launch.py
+
 
 # Create non-root user and give ownership (security best practice)
 RUN id -un ${UID} 2>/dev/null && usermod -l webuiuser -u ${UID} $(id -un ${UID}) || useradd -m -u ${UID} -g ${GID} -s /bin/bash webuiuser
