@@ -638,6 +638,10 @@ def network_LayerNorm_load_state_dict(self, *args, **kwargs):
 def network_MultiheadAttention_forward(self, *args, **kwargs):
     network_apply_weights(self)
 
+    # Fix attention mask for PyTorch 2.5+
+    if len(args) > 5 and args[5] is not None and args[5].dim() == 2:
+        args = list(args)
+        args[5] = None
     return originals.MultiheadAttention_forward(self, *args, **kwargs)
 
 

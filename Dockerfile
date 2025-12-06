@@ -45,13 +45,6 @@ RUN git config --system --add safe.directory /app
 RUN git clone \
     -b develop https://github.com/tvup/stable-diffusion-webui.git /app
 
-# Create warning filter
-RUN echo 'import warnings' > /app/filter_warnings.py && \
-    echo 'warnings.filterwarnings("ignore", message=".*copying from a non-meta parameter.*", category=UserWarning)' >> /app/filter_warnings.py
-
-# Modify launch.py to import it
-RUN sed -i '1i import filter_warnings' /app/launch.py
-
 
 # Create non-root user and give ownership (security best practice)
 RUN id -un ${UID} 2>/dev/null && usermod -l webuiuser -u ${UID} $(id -un ${UID}) || useradd -m -u ${UID} -g ${GID} -s /bin/bash webuiuser
