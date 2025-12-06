@@ -81,9 +81,9 @@ RUN cd /app/extensions \
     && git clone https://github.com/djbielejeski/a-person-mask-generator \
     && cd ..
 
-# Comment out the specific warning line in PyTorch
-RUN sed -i '2400s/.*warnings.warn.*/        pass  # Suppressed warning/' \
+RUN sed -i '2395,2405c\                  # Suppressed meta parameter warning' \
     /app/venv/lib/python3.12/site-packages/torch/nn/modules/module.py
+
 
 COPY --chown=webuiuser:webuiuser extensions/Config-Presets/config-img2img-custom-tracked-components.txt /app/extensions/Config-Presets/config-img2img-custom-tracked-components.txt
 COPY --chown=webuiuser:webuiuser extensions/Config-Presets/config-img2img.json /app/extensions/Config-Presets/config-img2img.json
@@ -98,3 +98,5 @@ EXPOSE 7860
 
 # Set the entrypoint to start the Python application
 ENTRYPOINT ["python", "launch.py", "--listen", "--port", "7860", "--xformers", "--no-gradio-queue", "--api", "--enable-insecure-extension-access"]
+#CMD ["tail", "-f", "/dev/null"]
+
