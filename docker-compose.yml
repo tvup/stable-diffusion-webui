@@ -54,6 +54,7 @@ services:
       - ./outputs:/app/outputs
       - /home/tvup/Projects/stable-diffusion-xl-webui/models/Stable-diffusion/sdxl_vae.safetensors:/app/models/VAE/sdxl_vae.safetensors:ro
       - /home/tvup/Projects/ComfyUI/models/diffusion_models:/app/models/Stable-diffusion:ro
+      - /opt/ai-models/Lora:/app/models/Lora:ro
       - /home/tvup/Projects/ComfyUI/models/clip/clip-vit-large-patch14:/app/models/CLIP/clip-vit-large-patch14:ro
       - /home/tvup/Projects/ComfyUI/models/diffusion_models/protovisionXLHighFidelity3D_release0620Bakedvae.safetensors:/app/models/VAE/protovisionXLHighFidelity3D_release0620Bakedvae.safetensors:ro
     shm_size: '20gb'
