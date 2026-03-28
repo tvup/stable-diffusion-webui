@@ -1,11 +1,13 @@
 from __future__ import annotations
-
+import warnings
 import os
 import time
 
 from modules import timer
 from modules import initialize_util
 from modules import initialize
+
+warnings.filterwarnings("ignore", message=".*copying from a non-meta parameter.*")
 
 startup_timer = timer.startup_timer
 startup_timer.record("launcher")
